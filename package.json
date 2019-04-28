@@ -1,0 +1,39 @@
+{
+  "name": "backlog-app",
+  "version": "1.0.0",
+  "description": "Another to-do list application",
+  "main": "index.js",
+  "scripts": {
+    "test": "standard",
+    "setup": "classjar -s com/bean/note.json -d com/class",
+    "start": "electron ."
+  },
+  "bin": {
+    "backlog": "index.js"
+  },
+  "engines": {
+    "node": ">=6"
+  },
+  "preferGlobal": true,
+  "repository": "github:lexndru/backlog-app",
+  "homepage": "https://github.com/lexndru/backlog-app",
+  "author": "Alexandru Catrina",
+  "license": "MIT",
+  "devDependencies": {
+    "classjar": "^1.1.0",
+    "electron": "^4.1.5",
+    "standard": "^12.0.1"
+  },
+  "keywords": [
+    "backlog",
+    "todo",
+    "nodejs",
+    "javascript",
+    "electron"
+  ],
+  "standard": {
+    "ignore": [
+      "com/class"
+    ]
+  }
+}

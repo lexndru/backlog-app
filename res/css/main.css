@@ -1,0 +1,250 @@
+/**
+ * Copyright (c) 2019 Alexandru Catrina <alex@codeissues.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+@import 'lib/semantic.min.css';
+
+@keyframes show-up {
+    0% {
+        top: 300px;
+    }
+    100% {
+        top: 150px;
+    }
+}
+
+@keyframes show-up-pseudo-after {
+    0% {
+        transform: rotate(-3deg);
+    }
+    33% {
+        transform: rotate(-4deg);
+    }
+    100% {
+        transform: rotate(-2deg);
+    }
+}
+
+@keyframes show-up-pseudo-before {
+    0% {
+        transform: rotate(6deg);
+    }
+    33% {
+        transform: rotate(7deg);
+    }
+    100% {
+        transform: rotate(5deg);
+    }
+}
+
+@keyframes fade {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes shake {
+    0% {
+        transform: translateX(0);
+    }
+    20% {
+        transform: translateX(10px);
+    }
+    40% {
+        transform: translateX(-5px);
+    }
+    60% {
+        transform: translateX(5px);
+    }
+    80% {
+        transform: translateX(-10px);
+    }
+    100% {
+        transform: translateX(0);
+    }
+}
+
+* {
+    user-select: none;
+    cursor: default;
+    transition: .5s all;
+}
+
+body {
+    overflow: hidden;
+    background-color: #3ed1e0;
+    background: radial-gradient(ellipse at center, rgba(62, 209, 224, 1) 0%, rgba(0, 158, 195, 1) 100%);
+}
+
+body.shake {
+    animation: shake 0.5s both;
+}
+
+main {
+    position: relative;
+    top: 150px;
+    z-index: 2;
+    animation: show-up 0.3s;
+}
+
+main::after,
+main::before,
+main {
+    display: block;
+    width: 400px;
+    height: 600px;
+    border: 1px solid #ddd;
+    border-radius: 2px;
+    background: #fff;
+    margin: 0 auto;
+    padding: 0;
+    box-shadow: 0 0 10px 5px rgba(111, 111, 111, 0.2);
+    transition: transform 0.5s;
+}
+
+main::after,
+main::before {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: 0;
+}
+
+main::after {
+    transform: rotate(-2deg);
+    animation: show-up-pseudo-after 1s;
+}
+
+main::before {
+    transform: rotate(5deg);
+    animation: show-up-pseudo-before 1s;
+}
+
+main > ul {
+    width: 500px;
+    height: 390px;
+    position: absolute;
+    z-index: 9;
+    margin: 10px 0 0 0;
+    padding: 20px 120px 20px 20px;
+    overflow-y: scroll;
+}
+
+main > ul::before {
+    content: "";
+    display: block;
+    position: sticky;
+    width: 350px;
+    height: 30px;
+    z-index: 9;
+    top: -20px;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+main > ul > li {
+    display: block;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    word-break: break-word;
+}
+
+main > ul > li input,
+main > ul > li label {
+    cursor: pointer !important;
+}
+
+main > ul > li[data-done="true"] label {
+    text-decoration: line-through;
+}
+
+header {
+    padding: 150px 0 0 0;
+    margin: 0 auto;
+    color: #e6f0ff;
+    text-align: center;
+    width: 400px;
+}
+
+header h1 {
+    font-size: 32px;
+    text-overflow: ellipsis;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    white-space: nowrap;
+    font-weight: 100;
+    overflow: hidden;
+}
+
+header.view-mode {
+    padding-top: 30px;
+}
+
+header.view-mode h1 + div {
+    animation: fade 0.25s;
+    opacity: 0;
+}
+
+header.view-mode + main {
+    top: 50px;
+}
+
+header:not(.view-mode) + main:hover {
+    transform: translateY(-10px);
+}
+
+header:not(.view-mode) + main:hover::after {
+    transform: rotate(-3deg);
+}
+
+header:not(.view-mode) + main:hover::before {
+    transform: rotate(6deg);
+}
+
+ul > li:last-child {
+    padding: 0 25px;
+    margin: 5px 0 0 0;
+}
+
+ul > li:last-child::before {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 0;
+    z-index: 1;
+    height: 1px;
+    background-color: var(--color);
+    width: var(--width);
+}
+
+ul > li:last-child > textarea {
+    padding: 5px;
+    margin: 0px;
+    border: 0px;
+    outline: 0px;
+    resize: none;
+    width: 100%;
+    border-top: 1px solid #ddd;
+    cursor: text;
+}

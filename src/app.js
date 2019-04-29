@@ -27,8 +27,8 @@ const { ResourceLoader } = require('./res')
  * BacklogApp
  */
 class BacklogApp extends BrowserWindow {
-  constructor () {
-    super(BacklogApp.WINDOW_PREFS)
+  constructor (appPreferences) {
+    super(appPreferences || BacklogApp.WINDOW_PREFS)
     this._res = null
     this._onCloseCb = null
     this._onReadyCb = null
@@ -97,8 +97,8 @@ class BacklogApp extends BrowserWindow {
     }
   }
 
-  static setup (res, { ready, close }) {
-    let app = new BacklogApp()
+  static setup (prefs, res, { ready, close }) {
+    let app = new BacklogApp(prefs)
     app.registerResourceLoader(res)
     app.registerOnReadyHandler(ready)
     app.registerOnCloseHandler(close)

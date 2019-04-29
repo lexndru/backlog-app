@@ -22,6 +22,7 @@
 'use strict'
 
 const { remote, ipcRenderer } = require('electron')
+const { dialog, shell, Menu } = remote
 
 const { UI } = require('./ui')
 
@@ -38,8 +39,12 @@ class BacklogUI extends UI {
     this._ready = false
     this._filepath = null
     this._autosave = null
+    this._lastSave = null
     this._saveCallback = null
     this._textLimit = 100
+    this._dirtyState = false
+    this._uiMenu = null
+    this._uiDefaultMode = true
   }
 
   get ApplicationMenu () {
@@ -49,12 +54,12 @@ class BacklogUI extends UI {
         submenu: [
           {
             label: 'New backlog',
-            accelerator: 'Control+N',
+            accelerator: 'CommandOrControl+N',
             click: () => this.callCreateBacklog()
           },
           {
             label: 'Open backlog...',
-            accelerator: 'Control+O',
+            accelerator: 'CommandOrControl+O',
             click: () => this.callOpenBacklog()
           },
           {
@@ -62,12 +67,14 @@ class BacklogUI extends UI {
           },
           {
             label: 'Save',
-            accelerator: 'Control+S',
-            click: () => this.callSaveBacklog()
+            accelerator: 'CommandOrControl+S',
+            click: () => this.callSaveBacklog(),
+            enabled: !!this._filepath
           },
           {
             label: 'Save as...',
-            click: () => this.callSaveAsBacklog()
+            click: () => this.callSaveAsBacklog(),
+            enabled: !!this._filepath
           },
           {
             type: 'separator'
@@ -82,16 +89,32 @@ class BacklogUI extends UI {
         label: 'Edit',
         submenu: [
           {
+            label: 'Undo',
+            role: 'undo',
+            accelerator: 'CommandOrControl+Z'
+          },
+          {
+            label: 'Redo',
+            role: 'redo',
+            accelerator: 'CommandOrControl+Y'
+          },
+          {
+            type: 'separator'
+          },
+          {
             label: 'Cut',
-            role: 'cut'
+            role: 'cut',
+            accelerator: 'CommandOrControl+X'
           },
           {
             label: 'Copy',
-            role: 'copy'
+            role: 'copy',
+            accelerator: 'CommandOrControl+C'
           },
           {
             label: 'Paste',
-            role: 'paste'
+            role: 'paste',
+            accelerator: 'CommandOrControl+V'
           }
         ]
       },
@@ -103,13 +126,15 @@ class BacklogUI extends UI {
             type: 'radio',
             id: 'appMenuWriteMode',
             checked: true,
-            click: () => console.log(`Clicked on write`)
+            click: this.setWriterMode.bind(this),
+            enabled: !!this._filepath
           },
           {
             label: 'Organize mode',
             type: 'radio',
             id: 'appMenuEditMode',
-            click: () => console.log(`Clicked on organize`)
+            click: this.setOrganizeMode.bind(this),
+            enabled: !!this._filepath
           }
         ]
       },
@@ -118,14 +143,14 @@ class BacklogUI extends UI {
         submenu: [
           {
             label: 'View license',
-            click: () => remote.shell.openExternal(config.link.license)
+            click: () => shell.openExternal(config.link.license)
           },
           {
             type: 'separator'
           },
           {
             label: 'Documetation',
-            click: () => remote.shell.openExternal(config.link.documentation)
+            click: () => shell.openExternal(config.link.documentation)
           }
         ]
       }
@@ -133,8 +158,8 @@ class BacklogUI extends UI {
   }
 
   setupApplicationMenu () {
-    let appMenu = remote.Menu.buildFromTemplate(this.ApplicationMenu)
-    remote.Menu.setApplicationMenu(appMenu)
+    this._uiMenu = Menu.buildFromTemplate(this.ApplicationMenu)
+    Menu.setApplicationMenu(this._uiMenu)
   }
 
   get ButtonCreateOptions () {
@@ -182,6 +207,7 @@ class BacklogUI extends UI {
     note.setChecked(false)
     this.appendUserNote(note)
     this.resetUserInput()
+    this._dirtyState = true
   }
 
   appendUserNote (note) {
@@ -211,45 +237,124 @@ class BacklogUI extends UI {
     this._saveCallback = cb
   }
 
-  defaultSaving (filepath) {
+  defaultSaving () {
     let notes = []
     for (let note of this._notes.values()) {
       notes.push(Note.Dump(note))
     }
     ipcRenderer.send(config.channel.save, {
-      filepath: filepath || this._filepath,
+      filepath: this._filepath,
       todoList: notes
     })
   }
 
-  async callCreateBacklog (_event) {
-    remote.dialog.showSaveDialog(this.ButtonCreateOptions, async (filename) => {
-      this._filepath = filename
-      ipcRenderer.send(config.channel.fileOpenWrite, this._filepath)
-    })
+  setMode (menuItem, stringId, inputVisibility) {
+    menuItem.checked = true
+    this._uiMenu.getMenuItemById(stringId).checked = false
+    this._uiDefaultMode = inputVisibility
+    this.UserInput.style.opacity = inputVisibility ? '1' : '0'
+    return menuItem
   }
 
-  async callOpenBacklog (_event) {
-    remote.dialog.showOpenDialog(this.ButtonOpenOptions, async (filePaths) => {
-      if (filePaths && filePaths.length > 0) {
-        this._filepath = filePaths.shift()
-        ipcRenderer.send(config.channel.fileOpenRead, this._filepath)
+  setWriterMode (menuItem, _browserWindow, _event) {
+    if (this._uiDefaultMode) {
+      return // already in writer mode
+    }
+
+    let newItems = new Map()
+    for (let i = 0; i < this.List.children.length; i++) {
+      let item = this.List.children[i]
+      if (!item.id) {
+        let wrapper = item.querySelector('aside')
+        let content = wrapper.querySelector('textarea').value.trim()
+        newItems.set(item, content)
+        wrapper.remove()
+      }
+    }
+
+    for (let [item, text] of newItems.entries()) {
+      let note = this._notes.get(item)
+      if (text.length) {
+        item.querySelector('label').textContent = text
+        note.setMessage(text)
+      } else {
+        this._notes.delete(item)
+        item.remove()
+      }
+    }
+
+    return this.setMode(menuItem, `appMenuEditMode`, true)
+  }
+
+  setOrganizeMode (menuItem, _browserWindow, _event) {
+    if (!this._uiDefaultMode) {
+      return // already in organize mode
+    }
+
+    for (let i = 0; i < this.List.children.length; i++) {
+      let item = this.List.children[i]
+      if (!item.id) {
+        let { textField } = this.createEditableItem(item)
+        textField.addEventListener('keydown', async (e) => {
+          if (e.charCode === UI.ENTER || e.which === UI.ENTER) {
+            return e.preventDefault()
+          }
+          if (textField.value.length > this._textLimit) {
+            document.body.classList.add('shake')
+            setTimeout(() => {
+              document.body.classList.remove('shake')
+            }, 1000)
+          } else {
+            document.body.classList.remove('shake')
+          }
+          setTimeout(this.calcTextareaHeight, 0, textField)
+        })
+      }
+    }
+
+    return this.setMode(menuItem, `appMenuWriteMode`, false)
+  }
+
+  async callCreateBacklog (_event) {
+    dialog.showSaveDialog(this.ButtonCreateOptions, async (filename) => {
+      if (filename) {
+        this._filepath = filename
+        this.reset()
+        ipcRenderer.send(config.channel.fileOpenWrite, this._filepath)
+        this.refreshLayout(null, this._filepath)
+        this.setupApplicationMenu()
       }
     })
   }
 
-  async callSaveBacklog (filepath) {
+  async callOpenBacklog (_event) {
+    dialog.showOpenDialog(this.ButtonOpenOptions, async (filePaths) => {
+      if (filePaths && filePaths.length > 0) {
+        this._filepath = filePaths.shift()
+        this.reset()
+        ipcRenderer.send(config.channel.fileOpenRead, this._filepath)
+        this.refreshLayout(null, this._filepath)
+        this.setupApplicationMenu()
+      }
+    })
+  }
+
+  async callSaveBacklog () {
     if (this._saveCallback !== null) {
-      await this._saveCallback(filepath)
+      await this._saveCallback()
+      this._lastSave = new Date()
+      this._dirtyState = false
     } else {
       throw new Error(`Unregistered save callback is not supported`)
     }
   }
 
   async callSaveAsBacklog () {
-    remote.dialog.showSaveDialog(this.ButtonSaveOptions, async (filename) => {
+    dialog.showSaveDialog(this.ButtonSaveOptions, async (filename) => {
       if (filename) {
-        this.callSaveBacklog(filename)
+        this._filepath = filename
+        this.callSaveBacklog()
+        this.refreshLayout(null, filename)
       }
     })
   }
@@ -260,7 +365,7 @@ class BacklogUI extends UI {
       if (saveInterval + 0 === saveInterval && saveInterval > 0) {
         interval = saveInterval
       }
-      this._autosave = setInterval(async () => this.callSaveAsBacklog(), interval)
+      this._autosave = setInterval(async () => this.callSaveBacklog(), interval)
     }
     return this._autosave
   }
@@ -311,12 +416,20 @@ class BacklogUI extends UI {
       setTimeout(async () => {
         this.Title.parentElement.querySelector('h1 + div').remove()
       }, 250)
-      this.createUserInput()
+      this.reset()
+    }
+    if (filename && filename.length) {
       if (filename.endsWith('.notes')) {
         filename = filename.substring(0, filename.length - 6) // 6 chars in ".notes"
       }
       this.Title.textContent = filename
     }
+  }
+
+  reset () {
+    this.List.innerHTML = ``
+    this._notes = new Map()
+    this.createUserInput()
   }
 
   initialize (sender, signal) {

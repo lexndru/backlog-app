@@ -30,10 +30,13 @@ const link = {
 
 const channel = {
 
+  // trigger by backend when something happends
+  uiStatusBar: `ui-status`,
+
   // trigger by frontend when data must be saved to disk
   save: `save-backlog`,
 
-  // trigger by frontend when data must be saved to disk
+  // trigger by backend when user closes application and data must be saved to disk
   saveConfirm: `save-confirm-backlog`,
 
   // trigger by backend when app is ready to show

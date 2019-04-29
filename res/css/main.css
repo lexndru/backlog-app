@@ -238,6 +238,16 @@ ul > li:last-child::before {
     width: var(--width);
 }
 
+ul > li > aside {
+    margin: 0;
+    padding: 0 0 0 25px;
+}
+
+ul > li > aside + div {
+    display: none !important;
+}
+
+ul > li[data-done="false"] > aside > textarea,
 ul > li:last-child > textarea {
     padding: 5px;
     margin: 0px;
@@ -247,4 +257,22 @@ ul > li:last-child > textarea {
     width: 100%;
     border-top: 1px solid #ddd;
     cursor: text;
+}
+
+ul > li[data-done="false"] > aside > textarea {
+    border-top-color: transparent;
+    padding: 0;
+}
+
+ul.focus > li[data-done="false"] > aside > textarea:not(:focus) {
+    opacity: 0.5;
+}
+
+ul > li[data-done="true"] > aside > textarea {
+    display: none;
+}
+
+body.shake ul > li > aside > textarea:focus,
+body.shake ul > li:last-child > textarea {
+    color: #d63131;
 }

@@ -110,15 +110,15 @@ class UI {
   refreshUserInput (limit) {
     let proc = Number(this._userInput.value.length / (limit || 1)).toFixed(2)
     let width = parseInt(proc * this._userInput.offsetWidth)
-    let color = 'orange'
+    let color = 'ffa500' // orange
     if (proc >= 0.1 && proc < 0.21) {
-      color = 'yellowgreen'
-    } else if (proc >= 0.21 && proc < 0.91) {
-      color = 'limegreen'
-    } else if (proc > 0.99) {
-      color = 'red'
+      color = '9acd32' // yellowgreen
+    } else if (proc >= 0.21 && proc <= 1.00) {
+      color = '32cd32' // limegreen
+    } else if (proc > 1.00) {
+      color = 'd63131' // custom red-ish
     }
-    this._userInput.parentElement.style = `--width:${width}px;--color:${color};`
+    this._userInput.parentElement.style = `--width:${width}px;--color:#${color};`
   }
 
   createListItem (textMessage, isChecked, nodeId) {
@@ -149,6 +149,23 @@ class UI {
     return { wrapper, item }
   }
 
+  createEditableItem (sourceElement) {
+    let textField = document.createElement('textarea')
+    textField.setAttribute('placeholder', 'An empty note is not saved')
+    textField.addEventListener('focus', () => {
+      this.List.classList.add('focus')
+    })
+    textField.addEventListener('blur', () => {
+      this.List.classList.remove('focus')
+    })
+    textField.value = sourceElement.querySelector('label').textContent.trim()
+    let wrapper = document.createElement('aside')
+    wrapper.appendChild(textField)
+    sourceElement.insertBefore(wrapper, sourceElement.querySelector('div'))
+    textField.rows = this.calcTextareaHeight(textField) // after DOM update
+    return { wrapper, textField }
+  }
+
   appendToList (item) {
     if (item !== null) {
       let lastIndex = this._todoList.children.length - 1
@@ -159,6 +176,13 @@ class UI {
         this._todoList.appendChild(item)
       }
     }
+  }
+
+  calcTextareaHeight (node) {
+    node.rows = 1 // reset height
+    let rows = Math.ceil(node.scrollHeight / node.offsetHeight)
+    node.rows = rows
+    return rows
   }
 
   static get ENTER () {

@@ -42,17 +42,23 @@ async function main (argv) {
   })
 
   const close = ContextHandler.create(async (app) => {
-    console.log(`Should save changes before exiting... `)
+    // TODO: what is the best way to save data before application closes?
   })
 
-  const backlog = BacklogApp.setup(loader, { ready, close })
+  const options = {
+    title: BacklogApp.constructor.name,
+    icon: resolve('res', 'img', 'notes.png'),
+    ...BacklogApp.WINDOW_PREFS
+  }
+
+  const backlog = BacklogApp.setup(options, loader, { ready, close })
 
   ipcMain.on(config.channel.save, async (sender, data) => {
     if (data && data.filepath) {
       let { filepath, todoList } = data
       let parser = new BacklogParser()
       let status = await parser.write(filepath, todoList)
-      backlog.webContents.send(config.channel.saveConfirm, status)
+      backlog.webContents.send(config.channel.uiStatusBar, status)
     }
   })
 

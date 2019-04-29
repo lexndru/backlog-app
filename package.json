@@ -6,7 +6,8 @@
   "scripts": {
     "test": "standard",
     "setup": "classjar -s com/bean/note.json -d com/class",
-    "start": "electron ."
+    "start": "electron .",
+    "build": "electron-packager . BacklogApp -icon=img/icon -platform=all -arch=all -version=1.0.0 -asar"
   },
   "bin": {
     "backlog": "index.js"
@@ -22,6 +23,7 @@
   "devDependencies": {
     "classjar": "^1.1.0",
     "electron": "^4.1.5",
+    "electron-packager": "^13.1.1",
     "standard": "^12.0.1"
   },
   "keywords": [

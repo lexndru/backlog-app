@@ -1,6 +1,7 @@
 # Backlog Application
-Another to-do list application
+Another to-do list application.
 
+![alt text](https://raw.githubusercontent.com/lexndru/backlog-app/master/screenshot.png)
 
 ## License
 Copyright (c) 2019 Alexandru Catrina

@@ -1,7 +1,15 @@
 # Backlog Application
-Another to-do list application.
+Another to-do list application to take notes, write ideas, mark them as done, save and edit later.
 
-![alt text](https://raw.githubusercontent.com/lexndru/backlog-app/master/screenshot.png)
+![application screens](https://raw.githubusercontent.com/lexndru/backlog-app/master/screenshot.png)
+
+## Install from sources
+```
+$ npm install .
+$ npm run build
+$ cd dist # e.g. cd BacklogApp-linux-x64
+$ ./BacklogApp
+```
 
 ## License
 Copyright (c) 2019 Alexandru Catrina

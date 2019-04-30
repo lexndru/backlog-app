@@ -7,7 +7,7 @@
     "test": "standard",
     "setup": "classjar -s com/bean/note.json -d com/class",
     "start": "electron .",
-    "build": "electron-packager . BacklogApp -icon=img/icon -platform=all -arch=all -version=1.0.0 -asar"
+    "build": "electron-packager . BacklogApp"
   },
   "bin": {
     "backlog": "index.js"

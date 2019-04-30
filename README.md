@@ -6,6 +6,7 @@ Another to-do list application to take notes, write ideas, mark them as done, sa
 ## Install from sources
 ```
 $ npm install .
+$ npm run setup
 $ npm run build
 $ cd dist # e.g. cd BacklogApp-linux-x64
 $ ./BacklogApp

@@ -32,7 +32,7 @@ const config = require('../com/config')
  * Main
  */
 async function main (argv) {
-  const masterLayout = resolve('res', 'main')
+  const masterLayout = resolve(__dirname, '..', 'res', 'main')
 
   const loader = new ResourceLoader()
   loader.setTemplate(masterLayout)

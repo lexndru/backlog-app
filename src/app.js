@@ -93,7 +93,10 @@ class BacklogApp extends BrowserWindow {
       width: BacklogApp.MIN_WIDTH,
       height: BacklogApp.MIN_HEIGHT,
       resizable: false,
-      show: false
+      show: false,
+      webPreferences: {
+        nodeIntegration: true
+      }
     }
   }
 

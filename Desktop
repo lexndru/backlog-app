@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Backlog App
+Encoding=UTF-8
+Comment=Backlog application for personal notes
+TryExec=backlog
+StartupNotify=true
+Exec=backlog
+Icon=/usr/local/lib/node_modules/backlog-app/res/img/notes.png
+Terminal=false
+Type=Application
+NoDisplay=false
+MimeType=applications/node
